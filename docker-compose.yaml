@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+  postgis:
+    image: kartoza/postgis:10.0-2.4
+
+  triplifier:
+    image: bregalia/usgs-triplifier
+    environment:
+      - PGUSER=docker
+      - PGPASSWORD=docker
+      - PGHOST=postgis
+      - PGPORT=5432
+      - PGDATABASE=gis
+    volumes:
+      - ./data:/src/app/data
+    command: all
+    depends_on: [postgis]
+
+  marmotta:
+    image: bregalia/marmotta-584
+    ports:
+      - 8080:8080
+
+  importer:
+    image: bregalia/kiwi-bulk-importer
+    environment:
+      - PGUSER=script
+      - PGPASSWORD=pass
+      - PGHOST=marmotta
+      - PGPORT=5432
+      - PGDATABASE=kiwi
+    volumes:
+      - ./data:/src/app/data
+    command: all
+    depends_on: [marmotta]
+
+  frontend:
+    image: bregalia/gnis-ld
+    environment:
+      - PGUSER=script
+      - PGPASSWORD=pass
+      - PGHOST=marmotta
+      - PGPORT=5432
+      - PGDATABASE=kiwi
+    depends_on: [marmotta]
