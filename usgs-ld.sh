@@ -70,7 +70,7 @@ Arguments:
 
 	# args
 	if [ "$1" == "all" ]; then
-		convert gnis && convert tnm
+		convert gnis && convert nhd
 		exit 0
 	fi
 
