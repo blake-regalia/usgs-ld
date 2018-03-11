@@ -33,5 +33,28 @@ To get the entire USGS-LD up and running as-is, the following setup procedure wi
 	&& ./usgs-ld.sh convert all
 	&& ./usgs-ld.sh triplestore up
 	&& ./usgs-ld.sh import all
-	&& ./usgs-ld.sh fronted up
+	&& ./usgs-ld.sh frontend up
 ```
+
+## Updating Datasets
+Changes to the source datasets require regenerating the entire RDF dataset.
+
+If you only need to update the GNIS:
+```shell
+./usgs-ld.sh download gnis \
+	&& ./usgs-ld.sh convert gnis \
+	&& ./usgs-ld.sh triplestore down \
+	&& ./usgs-ld.sh triplestore up \
+	&& ./usgs-ld.sh import all
+```
+
+If you only need to update the NHD:
+```shell
+./usgs-ld.sh download nhd \
+	&& ./usgs-ld.sh convert nhd \
+	&& ./usgs-ld.sh triplestore down \
+	&& ./usgs-ld.sh triplestore up \
+	&& ./usgs-ld.sh import all
+```
+
+<!-- Since there is no way to 'update' the triplestore, the script command `triplestore stage` will launch a new container (with an empty database) alongside the triplestore container currently running. This allows keeping the public endpoint online without interruption. When the import process has finished on the new container, `triplestore swap` will prepare and launch the new container, will kill and delete the triplestore container that is currently running and then  -->
