@@ -68,6 +68,11 @@ Arguments:
   nhd               convert the downloaded NHD datasets into RDF
  "
 
+	# args
+	if [ "$1" == "all" ]; then
+		convert gnis && convert tnm
+	fi
+
 	# pull latest image; run triplifier
 	docker-compose pull triplifier \
 		&& docker-compose run \
