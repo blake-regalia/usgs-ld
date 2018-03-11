@@ -24,3 +24,14 @@ Commands:
 For more information about a specific command, use: ./usgs-ld.sh [COMMAND] --help
 
 ```
+
+## Getting Started
+To get the entire USGS-LD up and running as-is, the following setup procedure will initialize and load all the data, as well as start the services with default settings:
+
+```shell
+./usgs-ld.sh download all \
+	&& ./usgs-ld.sh convert all
+	&& ./usgs-ld.sh triplestore up
+	&& ./usgs-ld.sh import all
+	&& ./usgs-ld.sh fronted up
+```
