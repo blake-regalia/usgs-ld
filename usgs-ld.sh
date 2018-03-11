@@ -71,6 +71,7 @@ Arguments:
 	# args
 	if [ "$1" == "all" ]; then
 		convert gnis && convert tnm
+		exit 0
 	fi
 
 	# pull latest image; run triplifier
