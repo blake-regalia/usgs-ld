@@ -116,8 +116,6 @@ Commands:
 		# stop and remove the container
 		docker-compose rm -fsv marmotta
 		;;
-	stage)
-		
 	*)
 		echo -e "Invalid triplestore command \"$1\"\n"
 		triplestore --help
