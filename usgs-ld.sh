@@ -1,4 +1,5 @@
 #!/bin/bash
+trap "exit" INT
 
 # relative to script
 cd "${BASH_SOURCE%/*}" || exit
@@ -25,6 +26,37 @@ help() {
 }
 
 
+# download USGS datasets
+download() {
+	default $# download all
+	help $* "Usage: $0 convert [ARGUMENTS]
+
+Arguments:
+  all               runs all of the commands below, in order
+  gnis	[SUFFIX]    download GNIS data, optionally using SUFFIX, e.g., \"20180201\"
+  tnm [DATASET]     download datasets from The National Map, optionally using DATASET, e.g., \"nhd\"
+ "
+
+	# args
+	case "$1" in
+	all)
+		download gnis && download tnm
+		;;
+	gnis)
+		shift
+		convert download-gnis $*
+		;;
+	tnm)
+		shift
+		convert tnm $*
+		;;
+	*)
+		echo -e "Invalid download command \"$1\"\n"
+		download --help
+	esac
+}
+
+
 # convert source USGS data to RDF
 convert() {
 	default $# convert all
@@ -32,9 +64,6 @@ convert() {
 
 Arguments:
   all               runs all of the commands below, in order
-  download-gnis	[SUFFIX]
-                    download GNIS data, optionally using SUFFIX, e.g., \"20180201\"
-  tnm [DATASET]     download datasets from The National Map, optionally using DATASET, e.g., \"nhd\"
   gnis              convert the downloaded GNIS datasets into RDF
   nhd               convert the downloaded NHD datasets into RDF
  "
@@ -49,16 +78,42 @@ Arguments:
 
 # launch the triplestore
 triplestore() {
+	default $# triplestore --help
 	help $* "Usage: $0 triplestore
 
-No arguments.
+Commands:
+  up        bring the triplestore online
+  down      shut down the container
 "
 
-	# pull latest image; bring marmotta up
-	docker-compose pull marmotta \
-		&& docker-compose up \
-			-d \
-			marmotta
+	# commands
+	case "$1" in
+	up)
+		# container already exists
+		container=$(docker-compose ps -q marmotta)
+		if [ $? -eq 0 ]; then
+			# container already running
+			if [ "$(docker ps -qf id=$container)" ]; then
+				echo "triplestore already running. see it by running: docker-compose ps marmotta"
+				exit 1
+			fi
+		fi
+
+		# pull latest image; bring marmotta up
+		docker-compose pull marmotta \
+			&& docker-compose up \
+				-d \
+				--no-recreate \
+				marmotta
+		;;
+	down)
+		# stop the container
+		docker-compose stop marmotta
+		;;
+	*)
+		echo -e "Invalid triplestore command \"$1\"\n"
+		triplestore --help
+	esac
 }
 
 
@@ -97,6 +152,10 @@ frontend() {
 
 # commands
 case "$1" in
+download)
+	shift
+	download $*
+	;;
 convert)
 	shift
 	convert $*
@@ -113,8 +172,8 @@ frontend)
 	shift
 	frontend $*
 	;;
-*)
-	help $* "Usage: $0 [COMMAND] [ARGS]
+"-h" | "--help" | *)
+	echo "Usage: $0 [COMMAND] [ARGS]
 
 Commands:
   convert           convert USGS datasets into RDF

@@ -18,9 +18,9 @@ services:
     depends_on: [postgis]
 
   marmotta:
-    image: bregalia/marmotta-584
+    image: bregalia/marmotta
     ports:
-      - 8080:8080
+      - "8080:8080"
 
   importer:
     image: bregalia/kiwi-bulk-importer
@@ -43,4 +43,5 @@ services:
       - PGHOST=marmotta
       - PGPORT=5432
       - PGDATABASE=kiwi
+      - "USGS_ENDPOINT_URL=http://marmotta:8080/sparql/select"
     depends_on: [marmotta]
