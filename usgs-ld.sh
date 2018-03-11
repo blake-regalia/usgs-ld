@@ -176,10 +176,11 @@ frontend)
 	echo "Usage: $0 [COMMAND] [ARGS]
 
 Commands:
+  download          download data from USGS
   convert           convert USGS datasets into RDF
   triplestore       launch the triplestore as a service
   import            import triples and geometry into the triplestore
-  frontend          launch the HTTP web frontend as a service
+  frontend          launch the HTTP web interface frontend as a service
 
 For more information about a specific command, use: $0 [COMMAND] --help
 "
