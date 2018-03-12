@@ -5,6 +5,24 @@ trap "exit" INT
 cd "${BASH_SOURCE%/*}" || exit
 
 
+# pull the latest image, delete old untagged ones
+fetch() {
+	# pull latest image
+	docker-compose pull $1
+
+	# deduce full image name
+	image=$(docker-compose images $1 | tail -n+3 | awk '{print $2}')
+
+	# find old untagged ones
+	old_images=$(docker images -q --filter "dangling=true" $image)
+
+	# if there are any; delete them
+	if [ "$old_images" ]; then
+		docker rmi $old_images
+	fi
+}
+
+
 # sets a command's default action
 default() {
 	if [ $1 -eq 0 ]; then
@@ -75,7 +93,7 @@ Arguments:
 	fi
 
 	# pull latest image; run triplifier
-	docker-compose pull triplifier \
+	fetch triplifier \
 		&& docker-compose run \
 			--rm \
 			triplifier $*
@@ -96,8 +114,7 @@ Commands:
 	case "$1" in
 	up)
 		# container already exists
-		container=$(docker-compose ps -q marmotta)
-		if [ $? -eq 0 ]; then
+		if docker-compose ps -q marmotta; then
 			# container already running
 			if [ "$(docker ps -qf id=$container)" ]; then
 				echo "triplestore already running. see it by running: docker-compose ps marmotta"
@@ -106,11 +123,16 @@ Commands:
 		fi
 
 		# pull latest image; bring marmotta up
-		docker-compose pull marmotta \
+		fetch marmotta \
 			&& docker-compose up \
 				-d \
 				--no-recreate \
-				marmotta
+				marmotta \
+			&& docker-compose logs -f marmotta \
+				| grep -m 1 -e "INFO: Server startup" \
+			&& echo -e "--------------------------------------------------------------------------" \
+				"\n  Triplestore server live at: http://$(docker-machine ip):8080/marmotta" \
+				"\n--------------------------------------------------------------------------"
 		;;
 	down)
 		# stop and remove the container
@@ -135,7 +157,7 @@ Arguments:
  "
 
 	# pull latest image; import all data
-	docker-compose pull importer \
+	fetch importer \
 		&& docker-compose run \
 			--rm \
 			importer $*
@@ -149,7 +171,7 @@ frontend() {
 "
 
 	# pull latest image; launch front-end
-	docker-compose pull frontend \
+	fetch frontend \
 		&& docker-compose up \
 			-d \
 			frontend
