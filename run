@@ -131,11 +131,11 @@ Commands:
 		machine_hostname=$(if [ "$(which docker-machine)" ]; then docker-machine ip; else echo "localhost"; fi)
 
 		# deduce what container output is telling us
-		subshell=$(cat <<-EOF
+		subshell=$(cat <<-END
 			docker-compose logs -f $service \
 				| tee >( grep -m1 -e "$ready_string" > /dev/null && kill -9 \$\$ ) \
 				| tee >( grep -m1 -e "exited with code" > /dev/null && kill -2 \$\$ )
-EOF)
+END)
 
 		# pull latest image; bring marmotta up
 		fetch $service $image \
