@@ -135,7 +135,7 @@ Commands:
 			docker-compose logs -f $service \
 				| tee >( grep -m1 -e "$ready_string" > /dev/null && kill -9 \$\$ ) \
 				| tee >( grep -m1 -e "exited with code" > /dev/null && kill -2 \$\$ )
-END)
+		END)
 
 		# pull latest image; bring marmotta up
 		fetch $service $image \
