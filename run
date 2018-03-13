@@ -11,7 +11,7 @@ fetch() {
 	docker-compose pull $1
 
 	# kill / stop old containers
-	docker rm -fs $1
+	docker-compose rm -fs $1
 
 	# find old untagged ones
 	old_images=$(docker images -q --filter "dangling=true" --filter "reference=$2")
