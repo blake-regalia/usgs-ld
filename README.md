@@ -3,7 +3,7 @@
 This project bundles up the triplifier, triplestore, bulk-importer and frontend interface for the GNIS and NHD.
 
 ## Requirements
-For 64-bit Linux:
+ - 64-bit Linux w/ `bash`:
  - Docker CE - [Installation guide for Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-16-04) (recommend making docker work without sudo, see Step 2)
  - Docker Compose - [Installation guide for Ubuntu 16.04](https://www.digitalocean.com/community/tutorials/how-to-install-docker-compose-on-ubuntu-16-04)
 
@@ -41,6 +41,10 @@ Changes to the source datasets require regenerating the entire RDF dataset.
 
 If you only need to update the GNIS:
 ```shell
+# remove old GNIS data first
+rm -rf data/*/gnis
+
+# download new datasets, convert them, then load everything
 ./usgs-ld.sh download gnis \
 	&& ./usgs-ld.sh convert gnis \
 	&& ./usgs-ld.sh triplestore down \
@@ -50,6 +54,10 @@ If you only need to update the GNIS:
 
 If you only need to update the NHD:
 ```shell
+# remove old NHD data first
+rm -rf data/*/nhd
+
+# download new datasets, convert them, then load everything
 ./usgs-ld.sh download nhd \
 	&& ./usgs-ld.sh convert nhd \
 	&& ./usgs-ld.sh triplestore down \

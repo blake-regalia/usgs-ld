@@ -17,7 +17,7 @@ services:
     command: all
     depends_on: [postgis]
 
-  marmotta:
+  triplestore:
     image: bregalia/marmotta
     ports:
       - "8080:8080"
@@ -27,21 +27,23 @@ services:
     environment:
       - PGUSER=script
       - PGPASSWORD=pass
-      - PGHOST=marmotta
+      - PGHOST=triplestore
       - PGPORT=5432
       - PGDATABASE=kiwi
     volumes:
       - ./data:/src/app/data
     command: all
-    depends_on: [marmotta]
+    depends_on: [triplestore]
 
   frontend:
-    image: bregalia/gnis-ld
+    image: bregalia/gnis-ld.org
+    ports:
+      - "3001:80"
     environment:
       - PGUSER=script
       - PGPASSWORD=pass
-      - PGHOST=marmotta
+      - PGHOST=triplestore
       - PGPORT=5432
       - PGDATABASE=kiwi
-      - "USGS_ENDPOINT_URL=http://marmotta:8080/sparql/select"
-    depends_on: [marmotta]
+      - "USGS_ENDPOINT_URL=http://triplestore:8080/marmotta/sparql/select"
+    depends_on: [triplestore]

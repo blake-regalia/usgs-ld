@@ -10,15 +10,15 @@ fetch() {
 	# pull latest image
 	docker-compose pull $1
 
-	# deduce full image name
-	image=$(docker-compose images $1 | tail -n+3 | awk '{print $2}')
+	# kill / stop old containers
+	docker rm -fs $1
 
 	# find old untagged ones
-	old_images=$(docker images -q --filter "dangling=true" $image)
+	old_images=$(docker images -q --filter "dangling=true" --filter "reference=$2")
 
 	# if there are any; delete them
 	if [ "$old_images" ]; then
-		docker rmi $old_images
+		docker rmi --force $old_images
 	fi
 }
 
@@ -93,50 +93,70 @@ Arguments:
 	fi
 
 	# pull latest image; run triplifier
-	fetch triplifier \
+	fetch triplifier "bregalia/usgs-triplifier" \
 		&& docker-compose run \
 			--rm \
 			triplifier $*
 }
 
 
-# launch the triplestore
-triplestore() {
-	default $# triplestore --help
-	help $* "Usage: $0 triplestore
+# controls a service
+service() {
+	service=$1; shift
+	image=$1; shift
+	port_and_path=$1; shift
+	ready_string=$1; shift
+
+	default $# $service --help
+	help $* "Usage: $0 $service
 
 Commands:
-  up        bring the triplestore online
-  down      shut down the container
+  up        bring the $service online
+  down      shut down and remove the container if it is running
 "
 
 	# commands
 	case "$1" in
 	up)
 		# container already exists
-		if docker-compose ps -q marmotta; then
+		if docker-compose ps -q $service; then
 			# container already running
 			if [ "$(docker ps -qf id=$container)" ]; then
-				echo "triplestore already running. see it by running: docker-compose ps marmotta"
+				echo "$servie already running. see it by running: docker-compose ps $service"
 				exit 1
 			fi
 		fi
 
+		# hostname of local docker machine
+		machine_hostname=$(if [ "$(which docker-machine)" ]; then docker-machine ip; else echo "localhost"; fi)
+
+		# deduce what container output is telling us
+		subshell=$(cat <<-EOF
+			docker-compose logs -f $service \
+				| tee >( grep -m1 -e "$ready_string" > /dev/null && kill -9 \$\$ ) \
+				| tee >( grep -m1 -e "exited with code" > /dev/null && kill -2 \$\$ )
+EOF)
+
 		# pull latest image; bring marmotta up
-		fetch marmotta \
+		fetch $service $image \
 			&& docker-compose up \
 				-d \
 				--no-recreate \
-				marmotta \
-			&& docker-compose logs -f marmotta \
-				| grep -m 1 -e "INFO: Server startup" \
-			&& echo -e "--------------------------------------------------------------------------" \
-				"\n  Triplestore server live at: http://$(docker-machine ip):8080/marmotta" \
-				"\n--------------------------------------------------------------------------"
+				$service \
+			&& { \
+				if bash -c "$subshell"; then
+					echo -e "\nfailed to start $service"
+					exit 1
+				fi
+			}
+
+		echo -e "--------------------------------------------------------------------------" \
+			"\n  $service service live at: http://$machine_hostname:$port_and_path" \
+			"\n--------------------------------------------------------------------------"
 		;;
 	down)
 		# stop and remove the container
-		docker-compose rm -fsv marmotta
+		docker-compose rm -fsv $service
 		;;
 	*)
 		echo -e "Invalid triplestore command \"$1\"\n"
@@ -157,24 +177,10 @@ Arguments:
  "
 
 	# pull latest image; import all data
-	fetch importer \
+	fetch importer "bregalia/kiwi-bulk-importer" \
 		&& docker-compose run \
 			--rm \
 			importer $*
-}
-
-
-# launch the frontend server
-frontend() {
-	help $* "Usage: $0 frontend [PORT=3001]
-  PORT -- the port to run the HTTP interface on
-"
-
-	# pull latest image; launch front-end
-	fetch frontend \
-		&& docker-compose up \
-			-d \
-			frontend
 }
 
 
@@ -190,7 +196,8 @@ convert)
 	;;
 triplestore)
 	shift
-	triplestore $*
+	service triplestore "bregalia/marmotta" "8080/marmotta" "INFO: Server startup" $*
+	exit 0
 	;;
 import)
 	shift
@@ -198,7 +205,7 @@ import)
 	;;
 frontend)
 	shift
-	frontend $*
+	service frontend "bregalia/gnis-ld.org" "3001/" "running on port" $*
 	;;
 "-h" | "--help" | *)
 	echo "Usage: $0 [COMMAND] [ARGS]
