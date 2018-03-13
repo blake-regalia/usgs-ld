@@ -12,6 +12,7 @@ services:
       - PGHOST=postgis
       - PGPORT=5432
       - PGDATABASE=gis
+      - "USGS_DATA_HOST=${USGS_DATA_HOST}"
     volumes:
       - ./data:/src/app/data
     command: all
@@ -45,5 +46,6 @@ services:
       - PGHOST=triplestore
       - PGPORT=5432
       - PGDATABASE=kiwi
+      - "USGS_DATA_HOST=${USGS_DATA_HOST}"
       - "USGS_ENDPOINT_URL=http://triplestore:8080/marmotta/sparql/select"
     depends_on: [triplestore]
