@@ -24,7 +24,7 @@ services:
       - "8080:8080"
 
   importer:
-    image: bregalia/kiwi-bulk-importer
+    image: bregalia/kiwi-bulk-loader
     environment:
       - PGUSER=script
       - PGPASSWORD=pass
