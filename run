@@ -148,11 +148,10 @@ Commands:
 					echo -e "\nfailed to start $service"
 					exit 1
 				fi
-			}
-
-		echo -e "--------------------------------------------------------------------------" \
-			"\n  $service service live at: http://$machine_hostname:$port_and_path" \
-			"\n--------------------------------------------------------------------------"
+			} \
+			&& echo -e "--------------------------------------------------------------------------" \
+				"\n  $service service live at: http://$machine_hostname:$port_and_path" \
+				"\n--------------------------------------------------------------------------"
 		;;
 	down)
 		# stop and remove the container
