@@ -176,7 +176,7 @@ Arguments:
  "
 
 	# pull latest image; import all data
-	fetch importer "bregalia/kiwi-bulk-importer" \
+	fetch importer "bregalia/kiwi-bulk-loader" \
 		&& docker-compose run \
 			--rm \
 			importer $*
