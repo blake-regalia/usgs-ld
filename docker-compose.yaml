@@ -21,6 +21,7 @@ services:
   triplestore:
     image: bregalia/marmotta
     ports:
+      - "5432:5432"
       - "8080:8080"
 
   importer:
@@ -31,6 +32,7 @@ services:
       - PGHOST=triplestore
       - PGPORT=5432
       - PGDATABASE=kiwi
+      - "TRIPLES_BATCH=${TRIPLES_BATCH}"
     volumes:
       - ./data:/src/app/data
     command: all
