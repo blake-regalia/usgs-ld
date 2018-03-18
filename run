@@ -149,9 +149,11 @@ Commands:
 					exit 1
 				fi
 			} \
-			&& echo -e "--------------------------------------------------------------------------" \
-				"\n  $service service live at: http://$machine_hostname:$port_and_path" \
-				"\n--------------------------------------------------------------------------"
+			&& if [ "$port_and_path" ]; then
+				echo -e "--------------------------------------------------------------------------" \
+					"\n  $service service live at: http://$machine_hostname:$port_and_path" \
+					"\n--------------------------------------------------------------------------"
+			fi
 		;;
 	down)
 		# stop and remove the container
@@ -183,6 +185,17 @@ Arguments:
 }
 
 
+# postgis service for triplifier
+postgis() {
+	service postgis "kartoza/postgis:10.0-2.4" "" "database system is ready to accept connections" $*
+}
+
+# triplestore service
+triplestore() {
+	service triplestore "bregalia/marmotta" "8080/marmotta" "INFO: Server startup" $*
+}
+
+
 # commands
 case "$1" in
 download)
@@ -191,11 +204,13 @@ download)
 	;;
 convert)
 	shift
+	postgis up
 	convert $*
+	postgis down
 	;;
 triplestore)
 	shift
-	service triplestore "bregalia/marmotta" "8080/marmotta" "INFO: Server startup" $*
+	triplestore $*
 	exit 0
 	;;
 import)

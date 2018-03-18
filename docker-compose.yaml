@@ -21,7 +21,7 @@ services:
   triplestore:
     image: bregalia/marmotta
     ports:
-      - "5432:5432"
+      - "25432:5432"
       - "8080:8080"
 
   importer:
