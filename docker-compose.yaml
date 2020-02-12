@@ -27,11 +27,7 @@ services:
   importer:
     image: bregalia/kiwi-bulk-loader
     environment:
-      - PGUSER=script
-      - PGPASSWORD=pass
-      - PGHOST=triplestore
-      - PGPORT=5432
-      - PGDATABASE=kiwi
+      - "DATABASE_URI=postgres://script:pass@triplestore:5432/kiwi"
       - "TRIPLES_BATCH=${TRIPLES_BATCH}"
     volumes:
       - ./data:/src/app/data
